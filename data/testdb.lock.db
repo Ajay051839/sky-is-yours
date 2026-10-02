@@ -1,6 +1,6 @@
 #FileLock
-#Fri Oct 02 18:21:56 IST 2026
-hostName=localhost
-id=1a0fcabdb25f7905850808bbe450e4090d86c5d2222
+#Sat Oct 03 01:57:39 IST 2026
+hostName=mac.lan
+id=1a0fe4d159a7ab697aef226741b2df989f32fc56482
 method=file
-server=localhost\:63125
+server=192.168.31.228\:55296
