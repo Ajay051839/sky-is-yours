@@ -5,6 +5,8 @@ import com.skyisyours.service.AirportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping ("/api")
 public class AirportController {
@@ -18,6 +20,11 @@ public class AirportController {
     public Airport AddAirport (@RequestBody Airport airport)
     {
         return (airportService.addAirport(airport));
+    }
+
+    @RequestMapping(value="/airports",method=RequestMethod.GET)
+    public List<Airport> GetAirports(){
+        return airportService.getAllAirports();
     }
 
     @RequestMapping(value = "/airport/{airportCode}", method = RequestMethod.DELETE)
