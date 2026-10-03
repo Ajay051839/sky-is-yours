@@ -1,4 +1,5 @@
 package com.skyisyours.payload;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AirportDTO {
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
     @NotBlank
@@ -47,6 +49,6 @@ public class AirportDTO {
     @Pattern(regexp = "^[A-Z]{2}$", message = "Uppercase alphabets of length 2 only accepted")
     private String countryCode;
 
-    @NotNull(message = "Active status is required")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Boolean isActive;
 }
