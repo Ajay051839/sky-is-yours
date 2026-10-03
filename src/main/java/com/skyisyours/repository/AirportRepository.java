@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface AirportRepository extends JpaRepository<Airport, Long> {
     @Query("SELECT a FROM Airport a WHERE " +
@@ -26,4 +28,6 @@ public interface AirportRepository extends JpaRepository<Airport, Long> {
             @Param("isActive") Boolean isActive,
             Pageable pageable
     );
+
+    Optional<Airport> findByAirportCode(String airportCode);
 }

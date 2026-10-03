@@ -2,9 +2,12 @@ package com.skyisyours.controller;
 
 import com.skyisyours.config.AppConstants;
 import com.skyisyours.payload.AirportDTO;
+import com.skyisyours.payload.AirportDistanceResponseDTO;
 import com.skyisyours.payload.AirportResponse;
 import com.skyisyours.service.AirportService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -59,14 +62,22 @@ public class AirportController {
         return new ResponseEntity<>(airportService.getAirportsBySubstringAndCountyAndIsActive(searchStr, countryCode, isActive, pageNumber, pageSize, sortBy, sortOrder), HttpStatus.OK);
     }
 
-    @PostMapping(value = "/airports/{id}/activate")
+    @PatchMapping(value = "/airports/{id}/activate")
     public ResponseEntity<AirportDTO> activateAirport(@PathVariable Long id)
     {
         return new ResponseEntity<>(airportService.activateOrDeactivateAirport(id, true), HttpStatus.OK);
     }
-    @PostMapping(value = "/airports/{id}/deactivate")
+    @PatchMapping(value = "/airports/{id}/deactivate")
     public ResponseEntity<AirportDTO> deactivateAirport(@PathVariable Long id)
     {
         return new ResponseEntity<>(airportService.activateOrDeactivateAirport(id, false), HttpStatus.OK);
+    }
+    @GetMapping("/airports/distance")
+    public ResponseEntity<AirportDistanceResponseDTO> calculateDistance(
+            @RequestParam @NotBlank @Pattern(regexp = "^[A-Z]{3}$", message = "Uppercase 3 Alphabets accepted only") String origin,
+            @RequestParam @NotBlank @Pattern(regexp = "^[A-Z]{3}$", message = "Uppercase 3 Alphabets accepted only") String destination) {
+
+        AirportDistanceResponseDTO response = airportService.calculateDistance(origin, destination);
+        return ResponseEntity.ok(response);
     }
 }

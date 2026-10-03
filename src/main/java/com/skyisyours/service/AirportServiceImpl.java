@@ -1,9 +1,11 @@
 package com.skyisyours.service;
 
+import com.skyisyours.config.AppConstants;
 import com.skyisyours.exceptions.APIException;
 import com.skyisyours.exceptions.ResourceNotFoundException;
 import com.skyisyours.model.Airport;
 import com.skyisyours.payload.AirportDTO;
+import com.skyisyours.payload.AirportDistanceResponseDTO;
 import com.skyisyours.payload.AirportResponse;
 import com.skyisyours.repository.AirportRepository;
 
@@ -16,8 +18,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.math.*;
 
 @Service
 @RequiredArgsConstructor
@@ -95,6 +99,36 @@ public class AirportServiceImpl implements AirportService{
         airportToUpdate.setIsActive(b);
         Airport updatedAirport = airportRepository.save(airportToUpdate);
         return modelMapper.map(updatedAirport, AirportDTO.class);
+    }
+
+    @Override
+    public AirportDistanceResponseDTO calculateDistance(String origin, String destination) {
+        String originTrimmed = origin.toUpperCase().trim();
+        String destinationTrimmed = destination.toUpperCase().trim();
+        if(originTrimmed.equals(destinationTrimmed))
+            throw new APIException("Source and Destination provided are same: "+originTrimmed);
+        Optional<Airport> optionalSourceAirport = airportRepository.findByAirportCode(originTrimmed);
+        Optional<Airport> optionalDestinationAirport = airportRepository.findByAirportCode(destinationTrimmed);
+        Airport sourceAirport = optionalSourceAirport.orElseThrow(() -> new ResourceNotFoundException("Airport", "airportCode", originTrimmed));
+        Airport destinationAirport = optionalDestinationAirport.orElseThrow(() -> new ResourceNotFoundException("Airport", "airportCode", destinationTrimmed));
+
+        double differenceLatitude = Math.toRadians(destinationAirport.getLatitude() - sourceAirport.getLatitude());
+        double differenceLongitude = Math.toRadians(destinationAirport.getLongitude() - sourceAirport.getLongitude());
+        double sourceLatitudeInRadian = Math.toRadians(sourceAirport.getLatitude());
+        double destinationLatitudeInRadian = Math.toRadians(destinationAirport.getLatitude());
+        double a = Math.pow(Math.sin(differenceLatitude / 2), 2) + Math.pow(Math.sin(differenceLongitude / 2), 2) *
+                        Math.cos(sourceLatitudeInRadian) * Math.cos(destinationLatitudeInRadian);
+        AirportDistanceResponseDTO airportDistanceResponseDTO = new AirportDistanceResponseDTO();
+
+        airportDistanceResponseDTO.setDistanceInKms(Math.round(2 * Math.asin(Math.sqrt(a))
+                * AppConstants.EARTH_RADIUS * 100.00)/100.00);
+        airportDistanceResponseDTO.setSourceAirportCode(sourceAirport.getAirportCode());
+        airportDistanceResponseDTO.setDestinationAirportCode(destinationAirport.getAirportCode());
+        airportDistanceResponseDTO.setDistanceInMiles(Math.round((airportDistanceResponseDTO.getDistanceInKms()
+                /AppConstants.KM_TO_MILES_MULTIPLE) * 100.00)/100.00);
+        airportDistanceResponseDTO.setEstimatedFlightDurationInMinutes(
+                (int) (airportDistanceResponseDTO.getDistanceInKms() / AppConstants.AIRPLANE_AVG_SPEED_PER_MIN));
+        return airportDistanceResponseDTO;
     }
 
     public void setAirportPageableParams(Page<Airport> airportPage, AirportResponse airportResponse)
