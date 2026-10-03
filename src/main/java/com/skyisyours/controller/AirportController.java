@@ -1,40 +1,51 @@
 package com.skyisyours.controller;
 
-import com.skyisyours.model.Airport;
+import com.skyisyours.config.AppConstants;
+import com.skyisyours.payload.AirportDTO;
+import com.skyisyours.payload.AirportResponse;
 import com.skyisyours.service.AirportService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
+@RequiredArgsConstructor
 @RequestMapping ("/api")
 public class AirportController {
-    private AirportService airportService;
-    public AirportController (AirportService airportService)
-    {
-        this.airportService = airportService;
-    }
+    private final AirportService airportService;
 
     @RequestMapping(value = "/airport", method = RequestMethod.POST)
-    public ResponseEntity<Airport> AddAirport (@Valid @RequestBody Airport airport)
+    public ResponseEntity<AirportDTO> addAirport (@Valid @RequestBody AirportDTO airport)
     {
-            Airport a = airportService.addAirport(airport);
-            return new ResponseEntity<> (a,HttpStatus.CREATED);
+        AirportDTO addedAirport = airportService.addAirport(airport);
+        return new ResponseEntity<> (addedAirport,HttpStatus.CREATED);
     }
 
     @RequestMapping(value="/airports", method = RequestMethod.GET)
-    public ResponseEntity<List<Airport>> GetAirports(){
-        return new ResponseEntity<>(airportService.getAllAirports(), HttpStatus.OK);
+    public ResponseEntity<AirportResponse> getAirports(@RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+                                                       @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+                                                       @RequestParam(name = "sortBy", defaultValue = AppConstants.AIRPORT_SORT_BY, required = false) String sortBy,
+                                                       @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_BY, required = false) String sortOrder){
+
+        return new ResponseEntity<>(airportService.getAllAirports(pageNumber, pageSize, sortBy, sortOrder), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/airport/{airportId}", method = RequestMethod.DELETE)
-    public ResponseEntity<String> DeleteAirport (@Valid @PathVariable Long airportId)
+    public ResponseEntity<AirportDTO> deleteAirport (@Valid @PathVariable Long airportId)
     {
-        Airport deletedAirport = airportService.deleteAirport(airportId);
-        return new ResponseEntity<> ("Successfully deleted airport with code "+airportId, HttpStatus.OK);
+        AirportDTO deletedAirport = airportService.deleteAirport(airportId);
+        return new ResponseEntity<> (deletedAirport, HttpStatus.OK);
     }
+    @RequestMapping(value = "/airport/{airportId}", method = RequestMethod.PUT)
+    public ResponseEntity<AirportDTO> modifyAirport (@Valid @RequestBody AirportDTO airport,
+                                                     @Valid @PathVariable Long airportId)
+    {
+        AirportDTO modifiedAirport = airportService.modifyAirport(airport, airportId);
+        return new ResponseEntity<> (modifiedAirport,HttpStatus.CREATED);
+    }
+
 }

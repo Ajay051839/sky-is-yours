@@ -1,10 +1,7 @@
 package com.skyisyours.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
 import lombok.*;
-import org.springframework.beans.factory.annotation.Value;
 
 @Entity
 @Data
@@ -16,44 +13,30 @@ public class Airport {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Pattern(regexp = "^[A-Z]{3}$", message = "Uppercase alphabets only accepted")
+    @Column(unique = true, length = 3)
     private String airportCode;
 
-    @NotBlank
+    @Column(unique = true)
     private String airportName;
 
-    @NotBlank
-    @Pattern(regexp = "^[A-Z]{4}$", message = "Uppercase alphabets of length 4 only accepted")
+    @Column(unique = true, length = 4)
     private String icaoCode;
 
-    @NotBlank
     private String city;
 
-    @NotBlank
     private String state;
 
-    @NotBlank
     private String country;
 
-    @NotBlank
     private String timezone;
 
-    @NotNull(message = "Latitude is required")
-    @DecimalMin(value = "-90.0", message = "Latitude must be between -90 and 90")
-    @DecimalMax(value = "90.0", message = "Latitude must be between -90 and 90")
     private Float latitude;
 
-    @NotNull(message = "Longitude is required")
-    @DecimalMin(value = "-180.0", message = "Longitude must be between -180 and 180")
-    @DecimalMax(value = "180.0", message = "Longitude must be between -180 and 180")
     private Float longitude;
 
-    @NotBlank
-    @Pattern(regexp = "^[A-Z]{2}$", message = "Uppercase alphabets of length 2 only accepted")
+    @Column(length = 2)
     private String countryCode;
 
-    @NotNull(message = "Active status is required")
-    @Column(nullable = false)
-    private Boolean isActive;
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean isActive = false;
 }

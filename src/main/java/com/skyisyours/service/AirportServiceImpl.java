@@ -3,59 +3,73 @@ package com.skyisyours.service;
 import com.skyisyours.exceptions.APIException;
 import com.skyisyours.exceptions.ResourceNotFoundException;
 import com.skyisyours.model.Airport;
+import com.skyisyours.payload.AirportDTO;
+import com.skyisyours.payload.AirportResponse;
 import com.skyisyours.repository.AirportRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class AirportServiceImpl implements AirportService{
 
-    @Autowired
-    private AirportRepository airportRepository;
+    private final AirportRepository airportRepository;
+    private final ModelMapper modelMapper;
 
     @Override
-    public Airport addAirport(Airport airportObject)
+    public AirportDTO addAirport(AirportDTO airportDTO)
     {
-        Optional<Airport> optionalAirport = findExistingAirport(airportObject);
-        Airport airport = optionalAirport.orElse(null);
-        if(airport != null)
-            throw new APIException("Airport already present with either the same name, ICAO Code or AirportCode");
-        airportRepository.save(airportObject);
-        return airportObject;
+        Airport airportToBeAdded = modelMapper.map(airportDTO, Airport.class);
+        Airport addedAirport = airportRepository.save(airportToBeAdded);
+        return modelMapper.map(addedAirport, AirportDTO.class);
     }
 
     @Override
-    public Airport deleteAirport(Long airportId) {
+    public AirportDTO deleteAirport(Long airportId) {
         Optional<Airport> optionalAirportToDelete = airportRepository.findById(airportId);
-        Airport airportToDelete = optionalAirportToDelete.orElseThrow(() -> new ResourceNotFoundException("Airport", "airportCode", airportId));
+        Airport airportToDelete = optionalAirportToDelete.orElseThrow(() -> new ResourceNotFoundException("Airport", "id", airportId));
         airportRepository.delete(airportToDelete);
-        return airportToDelete;
+        AirportDTO deletedAirportDTO = modelMapper.map(airportToDelete, AirportDTO.class);
+        return deletedAirportDTO;
     }
 
     @Override
-    public Airport modifyAirport(Airport airportObject) {
-        Optional<Airport> optionalAirportToDelete = airportRepository.findById(airportObject.getId());
-        Airport airportToModify = optionalAirportToDelete.orElseThrow(() -> new ResourceNotFoundException("Airport", "airportCode", airportObject.getAirportCode()));
-        airportObject.setId(airportToModify.getId());
-        airportRepository.save(airportObject);
-        return airportObject;
+    public AirportDTO modifyAirport(AirportDTO airportDTO, Long id) {
+        Optional<Airport> optionalAirportToModify = airportRepository.findById(id);
+        Airport airportToModify = optionalAirportToModify.orElseThrow(() -> new ResourceNotFoundException("Airport", "id", id));
+        modelMapper.map(airportDTO, airportToModify);
+        airportRepository.save(airportToModify);
+        return modelMapper.map(airportToModify, AirportDTO.class);
     }
 
     @Override
-    public List<Airport> getAllAirports() {
-        return airportRepository.findAll();
+    public AirportResponse getAllAirports(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
+                                ? Sort.by(sortBy).ascending()
+                                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Page<Airport> airportPageableList = airportRepository.findAll(pageable);
+        List<AirportDTO> airportListDTO = airportPageableList.stream()
+                .map(airport -> modelMapper.map(airport, AirportDTO.class))
+                .collect(Collectors.toList());
+        AirportResponse airportResponse = new AirportResponse();
+        airportResponse.setContent(airportListDTO);
+        airportResponse.setPageNumber(airportPageableList.getNumber());
+        airportResponse.setPageSize(airportPageableList.getSize());
+        airportResponse.setTotalElements(airportPageableList.getTotalElements());
+        airportResponse.setTotalPages(airportPageableList.getTotalPages());
+        airportResponse.setLastPage(airportPageableList.isLast());
+        return airportResponse;
     }
-
-    @Override
-    public Optional<Airport> findExistingAirport(Airport airport) {
-        Optional<Airport> currentAirport = airportRepository.findByAirportCode(airport.getAirportCode())
-                .or(() -> airportRepository.findByAirportName(airport.getAirportName()))
-                .or(() -> airportRepository.findByIcaoCode((airport.getIcaoCode())));
-        return currentAirport;
-    }
-
-
 }
