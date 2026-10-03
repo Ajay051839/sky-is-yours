@@ -65,11 +65,44 @@ public class AirportServiceImpl implements AirportService{
                 .collect(Collectors.toList());
         AirportResponse airportResponse = new AirportResponse();
         airportResponse.setContent(airportListDTO);
-        airportResponse.setPageNumber(airportPageableList.getNumber());
-        airportResponse.setPageSize(airportPageableList.getSize());
-        airportResponse.setTotalElements(airportPageableList.getTotalElements());
-        airportResponse.setTotalPages(airportPageableList.getTotalPages());
-        airportResponse.setLastPage(airportPageableList.isLast());
+        setAirportPageableParams(airportPageableList, airportResponse);
         return airportResponse;
+    }
+
+    @Override
+    public AirportResponse getAirportsBySubstringAndCountyAndIsActive(String searchStr, String countryCode, Boolean isActive, Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Page<Airport> airportPageableList = airportRepository.findBySubstringAndCountryCodeAndIsActive(searchStr, countryCode, isActive, pageable);
+        List<AirportDTO> airportListDTO = airportPageableList.stream()
+                .map(airport -> modelMapper.map(airport, AirportDTO.class))
+                .collect(Collectors.toList());
+        AirportResponse airportResponse = new AirportResponse();
+        airportResponse.setContent(airportListDTO);
+        setAirportPageableParams(airportPageableList, airportResponse);
+        return airportResponse;
+
+    }
+
+    @Override
+    public AirportDTO activateOrDeactivateAirport(Long id, boolean b) {
+        Optional<Airport> optionalAirportToUpdate = airportRepository.findById(id);
+        Airport airportToUpdate = optionalAirportToUpdate.orElseThrow(() -> new ResourceNotFoundException("Airport", "id", id));
+        if(airportToUpdate.getIsActive() != null && airportToUpdate.getIsActive().equals(b))
+            throw new APIException("Airport activity status is already "+b);
+        airportToUpdate.setIsActive(b);
+        Airport updatedAirport = airportRepository.save(airportToUpdate);
+        return modelMapper.map(updatedAirport, AirportDTO.class);
+    }
+
+    public void setAirportPageableParams(Page<Airport> airportPage, AirportResponse airportResponse)
+    {
+        airportResponse.setPageNumber(airportPage.getNumber());
+        airportResponse.setPageSize(airportPage.getSize());
+        airportResponse.setTotalElements(airportPage.getTotalElements());
+        airportResponse.setTotalPages(airportPage.getTotalPages());
+        airportResponse.setLastPage(airportPage.isLast());
     }
 }

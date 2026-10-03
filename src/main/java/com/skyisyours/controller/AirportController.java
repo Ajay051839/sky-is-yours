@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class AirportController {
     private final AirportService airportService;
 
-    @RequestMapping(value = "/airport", method = RequestMethod.POST)
+    @RequestMapping(value = "/airports", method = RequestMethod.POST)
     public ResponseEntity<AirportDTO> addAirport (@Valid @RequestBody AirportDTO airport)
     {
         AirportDTO addedAirport = airportService.addAirport(airport);
@@ -34,18 +34,39 @@ public class AirportController {
         return new ResponseEntity<>(airportService.getAllAirports(pageNumber, pageSize, sortBy, sortOrder), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/airport/{airportId}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/airports/{airportId}", method = RequestMethod.DELETE)
     public ResponseEntity<AirportDTO> deleteAirport (@Valid @PathVariable Long airportId)
     {
         AirportDTO deletedAirport = airportService.deleteAirport(airportId);
         return new ResponseEntity<> (deletedAirport, HttpStatus.OK);
     }
-    @RequestMapping(value = "/airport/{airportId}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/airports/{airportId}", method = RequestMethod.PUT)
     public ResponseEntity<AirportDTO> modifyAirport (@Valid @RequestBody AirportDTO airport,
                                                      @Valid @PathVariable Long airportId)
     {
         AirportDTO modifiedAirport = airportService.modifyAirport(airport, airportId);
         return new ResponseEntity<> (modifiedAirport,HttpStatus.CREATED);
     }
+    @RequestMapping(value = "/airports/search", method = RequestMethod.GET)
+    public ResponseEntity<AirportResponse> filterAirportsByCountry(@RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+                                                       @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+                                                       @RequestParam(name = "sortBy", defaultValue = AppConstants.AIRPORT_SORT_BY, required = false) String sortBy,
+                                                       @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_BY, required = false) String sortOrder,
+                                                                   @RequestParam(name = "countryCode", required = false) String countryCode,
+                                                                   @RequestParam(name = "searchStr", required = false) String searchStr,
+                                                                   @RequestParam(name = "isActive", required = false) Boolean isActive){
 
+        return new ResponseEntity<>(airportService.getAirportsBySubstringAndCountyAndIsActive(searchStr, countryCode, isActive, pageNumber, pageSize, sortBy, sortOrder), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/airports/{id}/activate")
+    public ResponseEntity<AirportDTO> activateAirport(@PathVariable Long id)
+    {
+        return new ResponseEntity<>(airportService.activateOrDeactivateAirport(id, true), HttpStatus.OK);
+    }
+    @PostMapping(value = "/airports/{id}/deactivate")
+    public ResponseEntity<AirportDTO> deactivateAirport(@PathVariable Long id)
+    {
+        return new ResponseEntity<>(airportService.activateOrDeactivateAirport(id, false), HttpStatus.OK);
+    }
 }
