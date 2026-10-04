@@ -12,6 +12,8 @@ import java.util.Optional;
 
 @Repository
 public interface AirportRepository extends JpaRepository<Airport, Long> {
+
+    // Dynamic paginated search filtering by optional country code, status, and case-insensitive keyword match across location/code fields
     @Query("SELECT a FROM Airport a WHERE " +
             "(:countryCode IS NULL OR a.countryCode = :countryCode) AND " +
             "(:isActive IS NULL OR a.isActive = :isActive) AND " +
@@ -29,5 +31,6 @@ public interface AirportRepository extends JpaRepository<Airport, Long> {
             Pageable pageable
     );
 
+    // Look up an airport by its unique 3-letter IATA code
     Optional<Airport> findByAirportCode(String airportCode);
 }
