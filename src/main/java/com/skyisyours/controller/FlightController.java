@@ -1,7 +1,10 @@
 package com.skyisyours.controller;
 
 import com.skyisyours.model.Flight;
+import com.skyisyours.payload.FlightDTO;
+import com.skyisyours.payload.FlightResponseDTO;
 import com.skyisyours.service.FlightService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -32,48 +35,48 @@ public class FlightController {
 
     // POST /api/flights - Create a new flight
     @PostMapping
-    public ResponseEntity<Flight> createFlight(@RequestBody Flight flight) {
-        Flight createdFlight = flightService.addFlight(flight);
+    public ResponseEntity<FlightResponseDTO> createFlight(@Valid @RequestBody FlightDTO flightRequestDTO) {
+        FlightResponseDTO createdFlight = flightService.addFlight(flightRequestDTO);
         return new ResponseEntity<>(createdFlight, HttpStatus.CREATED);
     }
 
     // GET /api/flights - Fetch all flights
     @GetMapping
-    public ResponseEntity<List<Flight>> getAllFlights() {
-        List<Flight> flights = flightService.getAllFlights();
+    public ResponseEntity<List<FlightResponseDTO>> getAllFlights() {
+        List<FlightResponseDTO> flights = flightService.getAllFlights();
         return ResponseEntity.ok(flights);
     }
 
     // GET /api/flights/{id} - Fetch flight by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Flight> getFlightById(@PathVariable Long id) {
-        Flight flight = flightService.getFlightById(id);
+    public ResponseEntity<FlightResponseDTO> getFlightById(@PathVariable Long id) {
+        FlightResponseDTO flight = flightService.getFlightById(id);
         return ResponseEntity.ok(flight);
     }
 
     // GET /api/flights/search?origin=BLR&destination=DEL&departureAt=2026-10-15T08:00:00
     @GetMapping("/search")
-    public ResponseEntity<List<Flight>> searchFlights(
+    public ResponseEntity<List<FlightResponseDTO>> searchFlights(
             @RequestParam String origin,
             @RequestParam String destination,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime departureAt) {
 
-        List<Flight> flights = flightService.searchFlights(origin, destination, departureAt);
+        List<FlightResponseDTO> flights = flightService.searchFlights(origin, destination, departureAt);
         return ResponseEntity.ok(flights);
     }
 
     //  Update an existing flight
     @PutMapping("/{id}")
-    public ResponseEntity<Flight> updateFlight(@PathVariable Long id, @RequestBody Flight flight) {
-        flight.setId(id);
-        Flight updatedFlight = flightService.modifyFlight(flight);
+    public ResponseEntity<FlightResponseDTO> updateFlight(@PathVariable Long id, @Valid@RequestBody FlightDTO flight) {
+//        flight.setId(id);
+        FlightResponseDTO updatedFlight = flightService.modifyFlight(flight,id);
         return ResponseEntity.ok(updatedFlight);
     }
 
     // DELETE /api/flights/{id} - Delete a flight
     @DeleteMapping("/{id}")
-    public ResponseEntity<Flight> deleteFlight(@PathVariable Long id) {
-        Flight deletedFlight = flightService.deleteFlight(id);
-        return ResponseEntity.ok(deletedFlight);
+    public ResponseEntity<FlightResponseDTO> deleteFlight(@PathVariable Long id) {
+        FlightResponseDTO deletedFlightResponseDTO = flightService.deleteFlight(id);
+        return ResponseEntity.ok(deletedFlightResponseDTO);
     }
 }
