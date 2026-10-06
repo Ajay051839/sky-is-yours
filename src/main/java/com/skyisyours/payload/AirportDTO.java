@@ -12,14 +12,12 @@ public class AirportDTO {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
-    @NotBlank
     @Pattern(regexp = "^[A-Z]{3}$", message = "Uppercase alphabets only accepted")
     private String airportCode;
 
     @NotBlank
     private String airportName;
 
-    @NotBlank
     @Pattern(regexp = "^[A-Z]{4}$", message = "Uppercase alphabets of length 4 only accepted")
     private String icaoCode;
 
@@ -45,7 +43,6 @@ public class AirportDTO {
     @DecimalMax(value = "180.0", message = "Longitude must be between -180 and 180")
     private Float longitude;
 
-    @NotBlank
     @Pattern(regexp = "^[A-Z]{2}$", message = "Uppercase alphabets of length 2 only accepted")
     private String countryCode;
 
