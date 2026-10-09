@@ -25,14 +25,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> NewMethodArgumentNotValidException(MethodArgumentNotValidException e)
     {
         Map <String, String> response = new HashMap<>();
-        e.getBindingResult().getAllErrors().forEach(
-                err ->
-                {
-                    String fieldName = ((FieldError)err).getField();
-                    String message = err.getDefaultMessage();
-                    response.put(fieldName, message);
-                }
-        );
+//        e.getBindingResult().getAllErrors().forEach(
+//                err ->
+//                {
+//                    String fieldName = ((FieldError)err).getField();
+//                    String message = err.getDefaultMessage();
+//                    response.put(fieldName, message);
+//                }
+//        );
+        e.getBindingResult().getFieldErrors().forEach(err -> {
+            String fieldName = err.getField();
+            String message = err.getDefaultMessage();
+            // Preserve first error or append multiple errors
+            response.merge(fieldName, message, (existing, newMsg) -> existing + ", " + newMsg);
+        });
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 

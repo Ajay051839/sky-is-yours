@@ -21,38 +21,38 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class FlightDTO {
 
-    @NotBlank(message = "Flight number is required")
-    @Size(min = 2, max = 10, message = "Flight number must be between 2 and 10 characters")
+    @NotBlank
+    @Size(min = 2, max = 10)
     private String flightNumber;
 
-    @NotBlank(message = "Origin code is required")
-    @Size(min = 3, max = 3, message = "Origin code must be exactly 3 characters (e.g., BLR)")
+    @NotBlank
+    @Size(min = 3, max = 3)
     private String originCode;
 
-    @NotBlank(message = "Destination code is required")
-    @Size(min = 3, max = 3, message = "Destination code must be exactly 3 characters (e.g., DEL)")
+    @NotBlank
+    @Size(min = 3, max = 3)
     private String destinationCode;
 
-    @NotNull(message = "Departure time is required")
-    @Future(message = "Departure time must be in the future")
+    @NotNull
+    @Future
     private LocalDateTime departureAt;
 
-    @NotNull(message = "Arrival time is required")
-    @Future(message = "Arrival time must be in the future")
+    @NotNull
+    @Future
     private LocalDateTime arrivalAt;
 
-    @NotNull(message = "Total seats is required")
-    @Min(value = 1, message = "Total seats must be at least 1")
+    @NotNull
+    @Min(value = 1)
     private Integer totalSeats;
 
-    @NotNull(message = "Available seats is required")
-    @Min(value = 0, message = "Available seats cannot be negative")
+    @NotNull
+    @Min(value = 0)
     private Integer availableSeats;
 
-    @NotNull(message = "Base price is required")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Base price must be greater than zero")
+    @NotNull
+    @DecimalMin(value = "0.0", inclusive = false)
     private BigDecimal basePrice;
 
-    @NotNull(message = "Status is required")
+    @NotNull
     private FlightStatus status;
 }
