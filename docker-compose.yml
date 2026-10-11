@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: sky_is_yours_postgres
+    environment:
+      POSTGRES_USER: sky_is_yours_user
+      POSTGRES_PASSWORD: sky_is_yours_pwd
+      POSTGRES_DB: sky_is_yours
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: postgres -c max_connections=150 -c shared_buffers=128MB
+
+volumes:
+  postgres_data:
