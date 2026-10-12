@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -57,11 +58,13 @@ public class FlightController {
     // GET /api/flights/search?origin=BLR&destination=DEL&departureAt=2026-10-15T08:00:00
     @GetMapping("/search")
     public ResponseEntity<List<FlightResponseDTO>> searchFlights(
-            @RequestParam String origin,
-            @RequestParam String destination,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime departureAt) {
+            @RequestParam(required = false) String origin,
+            @RequestParam(required = false) String destination,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
 
-        List<FlightResponseDTO> flights = flightService.searchFlights(origin, destination, departureAt);
+        List<FlightResponseDTO> flights = flightService.searchFlights(origin, destination, date, year, month);
         return ResponseEntity.ok(flights);
     }
 
