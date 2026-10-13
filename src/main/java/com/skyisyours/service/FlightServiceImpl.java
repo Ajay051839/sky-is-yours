@@ -6,11 +6,15 @@ import com.skyisyours.exceptions.ResourceNotFoundException;
 import com.skyisyours.payload.FlightDTO;
 import com.skyisyours.payload.FlightResponseDTO;
 import com.skyisyours.repository.FlightRepository;
+import com.skyisyours.specification.FlightSpecifications;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,18 +32,21 @@ public class FlightServiceImpl implements FlightService {
 
     @Override
     public FlightResponseDTO addFlight(FlightDTO flightRequestDTO) {
-        Flight flight = modelMapper.map(flightRequestDTO, Flight.class);
-        if (!flightRequestDTO.getArrivalAt().isAfter(flightRequestDTO.getDepartureAt())) {
+        // Validate arrival is after departure first
+        if (flightRequestDTO.getArrivalAt() == null || flightRequestDTO.getDepartureAt() == null ||
+                !flightRequestDTO.getArrivalAt().isAfter(flightRequestDTO.getDepartureAt())) {
             throw new APIException("Arrival time must be strictly after departure time");
         }
-        boolean flightExists = flightRepository
-                .existsByFlightNumberAndDepartureAt(flight.getFlightNumber(), flight.getDepartureAt());
-
-        if (flightExists) {
-            throw new APIException("Flight " + flight.getFlightNumber() + " already scheduled for departure at " + flight.getDepartureAt());
+        Flight flight = modelMapper.map(flightRequestDTO, Flight.class);
+        try {
+            // Directly attempt to save. The database unique constraint will prevent duplicates safely.
+            Flight savedFlight = flightRepository.save(flight);
+            return modelMapper.map(savedFlight, FlightResponseDTO.class);
+        } catch (org.springframework.dao.DataIntegrityViolationException ex) {
+            // Catch database constraint violation and throw a clean APIException
+            throw new APIException("Flight " + flight.getFlightNumber() +
+                    " already scheduled for departure at " + flight.getDepartureAt());
         }
-        Flight savedFlight = flightRepository.save(flight);
-        return modelMapper.map(savedFlight, FlightResponseDTO.class);
     }
 
     @Override
@@ -82,11 +89,28 @@ public class FlightServiceImpl implements FlightService {
     }
 
     @Override
-    public List<FlightResponseDTO> searchFlights(String originCode, String destinationCode, LocalDateTime departureAt) {
-        return flightRepository.findByOriginCodeAndDestinationCodeAndDepartureAtGreaterThanEqual(
-                originCode, destinationCode, departureAt
-        ).stream()
+    public List<FlightResponseDTO> searchFlights(String origin, String destination, LocalDate date, Integer year, Integer month) {
+        LocalDateTime startDate = null;
+        LocalDateTime endDate = null;
+        if (date != null) {
+            startDate = date.atStartOfDay();
+            endDate = date.atTime(LocalTime.MAX);
+        } else if (year != null && month != null) {
+            YearMonth yearMonth = YearMonth.of(year, month);
+            startDate = yearMonth.atDay(1).atStartOfDay();
+            endDate = yearMonth.atEndOfMonth().atTime(LocalTime.MAX);
+        }
+        // Build dynamic specification query
+        org.springframework.data.jpa.domain.Specification<Flight> spec = org.springframework.data.jpa.domain.Specification
+                .where(FlightSpecifications.hasOrigin(origin))
+                .and(FlightSpecifications.hasDestination(destination))
+                .and(FlightSpecifications.departureBetween(startDate, endDate));
+
+        List<Flight> flights = flightRepository.findAll(spec);
+
+        return flights.stream()
                 .map(flight -> modelMapper.map(flight, FlightResponseDTO.class))
                 .collect(Collectors.toList());
     }
+
 }
