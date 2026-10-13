@@ -18,13 +18,13 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         UserDTO user = userService.findById(id);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
-    @PostMapping("/{username}")
+    @GetMapping("/username/{username}")
     public ResponseEntity<UserDTO> getUserByUsername(@Pattern(regexp = "^[a-zA-Z0-9_]+$") @PathVariable String username) {
         UserDTO user = userService.findByUsername(username);
         return new ResponseEntity<>(user, HttpStatus.OK);
