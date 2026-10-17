@@ -4,7 +4,7 @@ import com.skyisyours.exceptions.APIException;
 import com.skyisyours.exceptions.ResourceNotFoundException;
 import com.skyisyours.model.Booking;
 import com.skyisyours.model.Flight;
-import com.skyisyours.model.User;
+import com.skyisyours.model.AppUser;
 import com.skyisyours.payload.*;
 import com.skyisyours.repository.BookingRepository;
 import com.skyisyours.repository.FlightRepository;
@@ -39,7 +39,7 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingResponseDTO createBooking(BookingRequestDTO bookingDTO) {
         // Validate the user
-        User user = userRepository.findById(bookingDTO.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User", "userId", bookingDTO.getUserId()));
+        AppUser user = userRepository.findById(bookingDTO.getUserId()).orElseThrow(() -> new ResourceNotFoundException("User", "userId", bookingDTO.getUserId()));
 
         // Validate if all the flights exist
         List<Flight> flights = flightRepository.findAllById(bookingDTO.getFlightIds());

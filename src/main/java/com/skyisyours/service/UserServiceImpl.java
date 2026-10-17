@@ -1,7 +1,7 @@
 package com.skyisyours.service;
 
 import com.skyisyours.exceptions.ResourceNotFoundException;
-import com.skyisyours.model.User;
+import com.skyisyours.model.AppUser;
 import com.skyisyours.payload.UserDTO;
 import com.skyisyours.repository.UserRepository;
 import lombok.Data;
@@ -23,34 +23,34 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO findById(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        AppUser user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         return modelMapper.map(user, UserDTO.class);
     }
 
     @Override
     public UserDTO findByUsername(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+        AppUser user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
         return modelMapper.map(user, UserDTO.class);
     }
 
     @Override
     public UserDTO createUser(UserDTO userDTO) {
-        User userToBeAdded = modelMapper.map(userDTO, User.class);
-        User addedUser = userRepository.save(userToBeAdded);
+        AppUser userToBeAdded = modelMapper.map(userDTO, AppUser.class);
+        AppUser addedUser = userRepository.save(userToBeAdded);
         return modelMapper.map(addedUser, UserDTO.class);
     }
 
     @Override
     public UserDTO updateUser(Long id, UserDTO userDTO) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        AppUser user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         modelMapper.map(userDTO, user);
-        User updatedUser = userRepository.save(user);
+        AppUser updatedUser = userRepository.save(user);
         return modelMapper.map(updatedUser, UserDTO.class);
     }
 
     @Override
     public UserDTO deleteUser(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        AppUser user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         userRepository.delete(user);
         return modelMapper.map(user, UserDTO.class);
     }

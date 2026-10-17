@@ -125,23 +125,15 @@ public class AirportServiceImpl implements AirportService{
         Airport sourceAirport = optionalSourceAirport.orElseThrow(() -> new ResourceNotFoundException("Airport", "airportCode", originTrimmed));
         Airport destinationAirport = optionalDestinationAirport.orElseThrow(() -> new ResourceNotFoundException("Airport", "airportCode", destinationTrimmed));
 
-        // Convert latitude and longitude differences to radians
-        double differenceLatitude = Math.toRadians(destinationAirport.getLatitude() - sourceAirport.getLatitude());
-        double differenceLongitude = Math.toRadians(destinationAirport.getLongitude() - sourceAirport.getLongitude());
-        double sourceLatitudeInRadian = Math.toRadians(sourceAirport.getLatitude());
-        double destinationLatitudeInRadian = Math.toRadians(destinationAirport.getLatitude());
+        double distanceInKms = haversineDistance(sourceAirport.getLatitude(), sourceAirport.getLongitude(),
+                destinationAirport.getLatitude(), destinationAirport.getLongitude());
 
-        // Haversine 'a' component: square of half the chord length between the points
-        double a = Math.pow(Math.sin(differenceLatitude / 2), 2) + Math.pow(Math.sin(differenceLongitude / 2), 2) *
-                Math.cos(sourceLatitudeInRadian) * Math.cos(destinationLatitudeInRadian);
         AirportDistanceResponseDTO airportDistanceResponseDTO = new AirportDistanceResponseDTO();
 
         // Compute distance in km rounded to two decimal places
-        airportDistanceResponseDTO.setDistanceInKms(Math.round(2 * Math.asin(Math.sqrt(a))
-                * AppConstants.EARTH_RADIUS * 100.00)/100.00);
+        airportDistanceResponseDTO.setDistanceInKms(Math.round(distanceInKms * 100.00)/100.00);
         airportDistanceResponseDTO.setSourceAirportCode(sourceAirport.getAirportCode());
         airportDistanceResponseDTO.setDestinationAirportCode(destinationAirport.getAirportCode());
-
         // Convert km to miles and estimate flight duration
         airportDistanceResponseDTO.setDistanceInMiles(Math.round((airportDistanceResponseDTO.getDistanceInKms()
                 /AppConstants.KM_TO_MILES_MULTIPLE) * 100.00)/100.00);
@@ -151,12 +143,22 @@ public class AirportServiceImpl implements AirportService{
     }
 
     // Maps pagination metadata from Spring Data Page to response wrapper
-    public void setAirportPageableParams(Page<Airport> airportPage, AirportResponse airportResponse)
+    private void setAirportPageableParams(Page<Airport> airportPage, AirportResponse airportResponse)
     {
         airportResponse.setPageNumber(airportPage.getNumber());
         airportResponse.setPageSize(airportPage.getSize());
         airportResponse.setTotalElements(airportPage.getTotalElements());
         airportResponse.setTotalPages(airportPage.getTotalPages());
         airportResponse.setLastPage(airportPage.isLast());
+    }
+
+    private double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return AppConstants.EARTH_RADIUS * c; // convert to km
     }
 }
