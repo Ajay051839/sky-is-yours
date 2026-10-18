@@ -90,7 +90,10 @@ public class AirportServiceImpl implements AirportService{
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
-        Page<Airport> airportPageableList = airportRepository.findBySubstringAndCountryCodeAndIsActive(searchStr, countryCode, isActive, pageable);
+        String searchPattern = (searchStr == null || searchStr.isBlank())
+                ? null
+                : "%" + searchStr.trim().toLowerCase() + "%";
+        Page<Airport> airportPageableList = airportRepository.findBySubstringAndCountryCodeAndIsActive(searchPattern, countryCode, isActive, pageable);
         List<AirportDTO> airportListDTO = airportPageableList.stream()
                 .map(airport -> modelMapper.map(airport, AirportDTO.class))
                 .collect(Collectors.toList());
