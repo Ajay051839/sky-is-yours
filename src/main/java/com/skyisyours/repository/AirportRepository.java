@@ -17,13 +17,13 @@ public interface AirportRepository extends JpaRepository<Airport, Long> {
     @Query("SELECT a FROM Airport a WHERE " +
             "(:countryCode IS NULL OR a.countryCode = :countryCode) AND " +
             "(:isActive IS NULL OR a.isActive = :isActive) AND " +
-            "((:searchStr IS NULL) OR " +
-            "(LOWER(a.country) LIKE CONCAT('%',LOWER(:searchStr),'%')) OR " +
-            "(LOWER(a.city) LIKE CONCAT('%',LOWER(:searchStr),'%')) OR " +
-            "(LOWER(a.state) LIKE CONCAT('%',LOWER(:searchStr),'%')) OR " +
-            "(LOWER(a.airportCode) LIKE CONCAT('%', LOWER(:searchStr), '%')) OR " +
-            "(LOWER(a.icaoCode) LIKE CONCAT('%', LOWER(:searchStr), '%')) OR " +
-            "(LOWER(a.airportName) LIKE CONCAT('%',LOWER(:searchStr),'%')))")
+            "(CAST(:searchStr AS string) IS NULL OR " +
+            "LOWER(a.country) LIKE :searchStr OR " +
+            "LOWER(a.city) LIKE :searchStr OR " +
+            "LOWER(a.state) LIKE :searchStr OR " +
+            "LOWER(a.airportCode) LIKE :searchStr OR " +
+            "LOWER(a.icaoCode) LIKE :searchStr OR " +
+            "LOWER(a.airportName) LIKE :searchStr)")
     Page<Airport> findBySubstringAndCountryCodeAndIsActive(
             @Param("searchStr") String searchStr,
             @Param("countryCode") String countryCode,

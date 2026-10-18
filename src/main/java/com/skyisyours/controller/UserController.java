@@ -1,6 +1,7 @@
 package com.skyisyours.controller;
 
 import com.skyisyours.payload.UserDTO;
+import com.skyisyours.payload.UserLoginDTO;
 import com.skyisyours.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -34,6 +35,12 @@ public class UserController {
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDTO) {
         UserDTO createdUser = userService.createUser(userDTO);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<UserDTO> loginUser(@Valid @RequestBody UserLoginDTO userLoginDTO) {
+        UserDTO loggedInUser = userService.loginUser(userLoginDTO);
+        return new ResponseEntity<>(loggedInUser, HttpStatus.OK);
     }
 
     @PutMapping("/update/{id}")

@@ -63,4 +63,7 @@ public class UserDTO {
     @Size(max = 50, message = "Country cannot exceed 50 characters")
     @Pattern(regexp = "^[A-Za-z\\s]+$", message = "Country must contain only letters and spaces")
     private String country;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String token;
 }
