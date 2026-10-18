@@ -1,7 +1,9 @@
 package com.skyisyours.controller;
 
+import com.skyisyours.config.AppConstants;
 import com.skyisyours.model.Flight;
 import com.skyisyours.payload.FlightDTO;
+import com.skyisyours.payload.FlightResponse;
 import com.skyisyours.payload.FlightResponseDTO;
 import com.skyisyours.service.FlightService;
 import jakarta.validation.Valid;
@@ -43,8 +45,13 @@ public class FlightController {
 
     // GET /api/flights - Fetch all flights
     @GetMapping
-    public ResponseEntity<List<FlightResponseDTO>> getAllFlights() {
-        List<FlightResponseDTO> flights = flightService.getAllFlights();
+    public ResponseEntity<FlightResponse> getAllFlights(
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+            @RequestParam(name = "sortBy", defaultValue = AppConstants.FLIGHT_SORT_BY, required = false) String sortBy,
+            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_BY, required = false) String sortOrder
+    ) {
+        FlightResponse flights = flightService.getAllFlights(pageNumber,pageSize,sortBy,sortOrder);
         return ResponseEntity.ok(flights);
     }
 

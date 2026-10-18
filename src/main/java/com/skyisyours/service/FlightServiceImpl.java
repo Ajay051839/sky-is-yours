@@ -4,11 +4,16 @@ import com.skyisyours.model.Flight;
 import com.skyisyours.exceptions.APIException;
 import com.skyisyours.exceptions.ResourceNotFoundException;
 import com.skyisyours.payload.FlightDTO;
+import com.skyisyours.payload.FlightResponse;
 import com.skyisyours.payload.FlightResponseDTO;
 import com.skyisyours.repository.FlightRepository;
 import com.skyisyours.specification.FlightSpecifications;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -76,10 +81,25 @@ public class FlightServiceImpl implements FlightService {
     }
 
     @Override
-    public List<FlightResponseDTO> getAllFlights() {
-        return flightRepository.findAll().stream()
+    public FlightResponse getAllFlights(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) {
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Page<Flight> flightPage = flightRepository.findAll(pageDetails);
+        List<FlightResponseDTO> flights = flightPage.getContent().stream()
                 .map(flight -> modelMapper.map(flight, FlightResponseDTO.class))
                 .collect(Collectors.toList());
+
+        // Setting pagination metadata details in the response
+        FlightResponse response = new FlightResponse();
+        response.setContent(flights);
+        response.setPageNumber(flightPage.getNumber());
+        response.setPageSize(flightPage.getSize());
+        response.setTotalElements(flightPage.getTotalElements());
+        response.setTotalPages(flightPage.getTotalPages());
+        response.setLastPage(flightPage.isLast());
+        return response;
     }
 
     @Override
